@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>闹钟语音提醒</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── 时钟 ── */
+    #clock {
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #f8fafc;
+      text-shadow: 0 0 40px rgba(99,102,241,.6);
+      margin-bottom: 0.25rem;
+    }
+    #date-str {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── 卡片容器 ── */
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 560px;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+
+    /* ── 添加表单 ── */
+    .form-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .form-row input[type="time"],
+    .form-row input[type="text"] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      color: #f1f5f9;
+      font-size: 1rem;
+      padding: 0.55rem 0.75rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-row input[type="time"] { width: 130px; }
+    .form-row input[type="text"] { flex: 1; min-width: 140px; }
+    .form-row input:focus { border-color: #6366f1; }
+
+    .repeat-label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.88rem;
+      color: #94a3b8;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    /* toggle switch */
+    .toggle { position: relative; display: inline-block; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0;
+      background: #334155; border-radius: 20px; cursor: pointer;
+      transition: background .2s;
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%;
+      transition: transform .2s;
+    }
+    .toggle input:checked + .slider { background: #6366f1; }
+    .toggle input:checked + .slider::before { transform: translateX(16px); }
+
+    .btn-add {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: #4f46e5; }
+
+    /* ── 闹钟列表 ── */
+    #alarm-list { display: flex; flex-direction: column; gap: 0.65rem; }
+
+    .alarm-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      transition: opacity .2s;
+    }
+    .alarm-item.disabled { opacity: 0.4; }
+
+    .alarm-time {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a5b4fc;
+      min-width: 70px;
+      letter-spacing: 0.02em;
+    }
+    .alarm-meta { flex: 1; }
+    .alarm-task { font-size: 1rem; color: #f1f5f9; }
+    .alarm-sub {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+    }
+
+    .btn-del {
+      background: none;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: 0.5rem;
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-del:hover { border-color: #ef4444; color: #ef4444; }
+
+    .empty-hint {
+      color: #334155;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+
+    /* ── 状态栏 ── */
+    #status-bar {
+      font-size: 0.82rem;
+      color: #475569;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+    #status-bar span.ok { color: #34d399; }
+    #status-bar span.warn { color: #fbbf24; }
+
+    /* ── 触发提示横幅 ── */
+    #toast {
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120%);
+      background: #312e81;
+      border: 1px solid #6366f1;
+      color: #e0e7ff;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,.4);
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+      z-index: 100;
+      max-width: 90vw;
+      text-align: center;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="clock">00:00:00</div>
+<div id="date-str"></div>
+
+<!-- 添加闹钟 -->
+<div class="card">
+  <div class="card-title">添加闹钟</div>
+  <div class="form-row">
+    <input type="time" id="inp-time" />
+    <input type="text" id="inp-task" placeholder="任务名称，如：晨会" maxlength="40" />
+    <label class="repeat-label">
+      <label class="toggle">
+        <input type="checkbox" id="inp-repeat" />
+        <span class="slider"></span>
+      </label>
+      每天重复
+    </label>
+    <button class="btn-add" onclick="addAlarm()">添加</button>
+  </div>
+</div>
+
+<!-- 闹钟列表 -->
+<div class="card">
+  <div class="card-title">闹钟列表</div>
+  <div id="alarm-list"><p class="empty-hint">暂无闹钟，添加一个吧</p></div>
+</div>
+
+<div id="status-bar">监控运行中 &mdash; 每 10 秒检查一次</div>
+<div id="toast"></div>
+
+<script>
+  // ── 工具函数 ──────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const uid = () => Math.random().toString(36).slice(2, 9);
+
+  // ── 数据持久化 ────────────────────────────────────────────
+  function loadAlarms() {
+    try { return JSON.parse(localStorage.getItem('alarms') || '[]'); }
+    catch { return []; }
+  }
+  function saveAlarms(list) {
+    localStorage.setItem('alarms', JSON.stringify(list));
+  }
+
+  // ── 实时时钟 ──────────────────────────────────────────────
+  const weekDays = ['日','一','二','三','四','五','六'];
+  function updateClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    $('clock').textContent = `${hh}:${mm}:${ss}`;
+    const y = now.getFullYear(), mo = now.getMonth()+1, d = now.getDate();
+    $('date-str').textContent = `${y} 年 ${mo} 月 ${d} 日  星期${weekDays[now.getDay()]}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── 语音播报 ──────────────────────────────────────────────
+  // 激活语音权限（需用户手势）
+  let voiceReady = false;
+  document.addEventListener('click', () => {
+    if (voiceReady) return;
+    const u = new SpeechSynthesisUtterance('');
+    u.lang = 'zh-CN'; u.volume = 0;
+    speechSynthesis.speak(u);
+    voiceReady = true;
+  }, { once: true });
+
+  function speak(text) {
+    if (!('speechSynthesis' in window)) {
+      showToast('⚠️ 浏览器不支持语音合成');
+      return;
+    }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = 0.95;
+    u.pitch = 1;
+
+    // 优先选择中文语音
+    const voices = speechSynthesis.getVoices();
+    const zhVoice = voices.find(v =>
+      v.lang.startsWith('zh') || v.name.toLowerCase().includes('chinese')
+    );
+    if (zhVoice) u.voice = zhVoice;
+
+    speechSynthesis.speak(u);
+  }
+
+  function buildAnnounce(alarm) {
+    const [hStr, mStr] = alarm.time.split(':');
+    const h = parseInt(hStr, 10), m = parseInt(mStr, 10);
+    const timeText = m === 0 ? `${h}点整` : `${h}点${m}分`;
+    return `现在是${timeText}，提醒您：${alarm.task}`;
+  }
+
+  // ── Toast 提示 ────────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  // ── 闹钟触发 ──────────────────────────────────────────────
+  const triggeredToday = new Set();
+  let lastDate = new Date().toDateString();
+
+  function checkAlarms() {
+    const now = new Date();
+    const today = now.toDateString();
+    if (today !== lastDate) { triggeredToday.clear(); lastDate = today; }
+
+    const current = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const alarms = loadAlarms();
+    let changed = false;
+
+    alarms.forEach(a => {
+      if (!a.enabled) return;
+      if (a.time !== current) return;
+      const key = `${a.id}_${current}`;
+      if (triggeredToday.has(key)) return;
+
+      triggeredToday.add(key);
+      const text = buildAnnounce(a);
+      speak(text);
+      showToast('🔔 ' + text);
+
+      if (!a.repeat) { a.enabled = false; changed = true; }
+    });
+
+    if (changed) { saveAlarms(alarms); renderList(); }
+  }
+
+  setInterval(checkAlarms, 10000);
+
+  // ── 渲染列表 ──────────────────────────────────────────────
+  function renderList() {
+    const alarms = loadAlarms();
+    const el = $('alarm-list');
+    if (!alarms.length) {
+      el.innerHTML = '<p class="empty-hint">暂无闹钟，添加一个吧</p>';
+      return;
+    }
+    // 按时间排序
+    alarms.sort((a, b) => a.time.localeCompare(b.time));
+    el.innerHTML = alarms.map(a => `
+      <div class="alarm-item ${a.enabled ? '' : 'disabled'}" id="item-${a.id}">
+        <div class="alarm-time">${a.time}</div>
+        <div class="alarm-meta">
+          <div class="alarm-task">${escHtml(a.task)}</div>
+          <div class="alarm-sub">${a.repeat ? '每天重复' : '仅一次'} &nbsp;·&nbsp; ${a.enabled ? '已启用' : '已禁用'}</div>
+        </div>
+        <label class="toggle" title="启用/禁用">
+          <input type="checkbox" ${a.enabled ? 'checked' : ''} onchange="toggleAlarm('${a.id}', this.checked)" />
+          <span class="slider"></span>
+        </label>
+        <button class="btn-del" onclick="deleteAlarm('${a.id}')">删除</button>
+      </div>
+    `).join('');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── 操作函数 ──────────────────────────────────────────────
+  function addAlarm() {
+    const time = $('inp-time').value;
+    const task = $('inp-task').value.trim();
+    const repeat = $('inp-repeat').checked;
+
+    if (!time) { showToast('请选择闹钟时间'); return; }
+    if (!task) { showToast('请输入任务名称'); return; }
+
+    const alarms = loadAlarms();
+    alarms.push({ id: uid(), time, task, repeat, enabled: true });
+    saveAlarms(alarms);
+    renderList();
+
+    $('inp-task').value = '';
+    $('inp-repeat').checked = false;
+    showToast(`✓ 已添加：${time} — ${task}`);
+  }
+
+  function deleteAlarm(id) {
+    const alarms = loadAlarms().filter(a => a.id !== id);
+    saveAlarms(alarms);
+    renderList();
+  }
+
+  function toggleAlarm(id, enabled) {
+    const alarms = loadAlarms();
+    const a = alarms.find(x => x.id === id);
+    if (a) { a.enabled = enabled; saveAlarms(alarms); renderList(); }
+  }
+
+  // ── 回车添加 ──────────────────────────────────────────────
+  $('inp-task').addEventListener('keydown', e => { if (e.key === 'Enter') addAlarm(); });
+
+  // ── 初始化 ────────────────────────────────────────────────
+  // 等语音列表加载
+  speechSynthesis.onvoiceschanged = () => {};
+  renderList();
+</script>
+</body>
+</html>
