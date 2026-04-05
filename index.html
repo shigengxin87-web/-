@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>石更新 · 知识IP私域策略专家</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #6366f1;
+      --accent-dark: #4f46e5;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── 导航 ────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 2.5rem;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+    .nav-brand {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 7rem 2rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: "";
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(99,102,241,.16) 0%, transparent 68%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .avatar-wrap {
+      width: 148px; height: 148px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      overflow: hidden;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 0 48px rgba(99,102,241,.32);
+      flex-shrink: 0;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+    .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-initials {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.04em;
+      user-select: none;
+    }
+
+    .hero-name {
+      font-size: clamp(2.6rem, 7vw, 4.2rem);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 40%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.65rem;
+      position: relative; z-index: 1;
+    }
+
+    .hero-title {
+      font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-bottom: 1.6rem;
+      letter-spacing: 0.08em;
+      position: relative; z-index: 1;
+    }
+    .hero-title strong {
+      color: #a5b4fc;
+      font-weight: 600;
+    }
+
+    .hero-tagline {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 500px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+      position: relative; z-index: 1;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      position: relative; z-index: 1;
+    }
+    .btn {
+      padding: 0.68rem 1.6rem;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+      display: inline-block;
+    }
+    .btn-primary { background: var(--accent); color: #fff; border: none; }
+    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,.4); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    /* ── 数字高亮条 ──────────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 3rem;
+      margin-top: 3.5rem;
+      position: relative; z-index: 1;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #a5b4fc;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── 通用 Section ────────────────────────── */
+    section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .section-desc {
+      color: var(--text-muted);
+      max-width: 560px;
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); }
+
+    /* ── 项目卡片 ────────────────────────────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+      gap: 1.25rem;
+    }
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      transition: transform .22s, border-color .22s, box-shadow .22s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .project-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent);
+      box-shadow: 0 10px 32px rgba(99,102,241,.16);
+    }
+    .project-icon {
+      width: 48px; height: 48px;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, #312e81, #4c1d95);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .project-name { font-size: 1rem; font-weight: 700; }
+    .project-desc { font-size: 0.875rem; color: var(--text-muted); flex: 1; line-height: 1.7; }
+    .project-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.65rem;
+      border-radius: 99px;
+      background: rgba(99,102,241,.15);
+      color: #a5b4fc;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── 经历时间线 ──────────────────────────── */
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0.6rem; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+    }
+    .timeline-item { position: relative; margin-bottom: 2.8rem; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      left: -2.45rem; top: 0.45rem;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .timeline-period {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.25rem;
+    }
+    .timeline-role { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.15rem; }
+    .timeline-org { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+    .timeline-body { font-size: 0.88rem; color: var(--text-muted); line-height: 1.8; }
+
+    /* ── 技能标签 ────────────────────────────── */
+    .skills-wrap { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .skill-badge {
+      padding: 0.38rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      transition: all .2s;
+    }
+    .skill-badge:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── 联系 ────────────────────────────────── */
+    #contact { text-align: center; }
+    #contact .section-desc { margin-left: auto; margin-right: auto; }
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2.5rem 2rem;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      min-width: 300px;
+    }
+    .contact-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.95rem; color: var(--text-muted);
+    }
+    .contact-icon { font-size: 1.1rem; }
+
+    /* ── Footer ──────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    /* ── 响应式 ──────────────────────────────── */
+    @media (max-width: 640px) {
+      nav { padding: 0.8rem 1.2rem; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .timeline { padding-left: 1.5rem; }
+      .timeline-dot { left: -1.95rem; }
+      .stats-bar { gap: 1.8rem; }
+    }
+
+    /* ── 滚动淡入 ────────────────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav>
+  <a href="#hero" class="nav-brand">石更新</a>
+  <div class="nav-links">
+    <a href="#projects">项目</a>
+    <a href="#experience">经历</a>
+    <a href="#contact">联系</a>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="avatar-wrap">
+    <!--
+      放好头像后取消注释：
+      <img src="photo.jpg" alt="石更新" />
+    -->
+    <span class="avatar-initials">石</span>
+  </div>
+
+  <h1 class="hero-name">石更新</h1>
+  <p class="hero-title">
+    <strong>知识IP私域策略专家</strong> &nbsp;·&nbsp; 前高途一级项目负责人
+  </p>
+  <p class="hero-tagline">
+    专注帮助知识创业者从 0 到 1 搭建私域增长体系——<br>
+    IP 定位、内容策略、用户运营到变现全链路打通。
+  </p>
+
+  <div class="hero-btns">
+    <a href="#projects" class="btn btn-primary">查看我的项目</a>
+    <a href="#contact" class="btn btn-outline">合作咨询</a>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num">N+</div>
+      <div class="stat-label">服务项目</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">N+</div>
+      <div class="stat-label">私域学员</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">N+</div>
+      <div class="stat-label">年行业经验</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 项目 ─────────────────────────────────────────────── -->
+<section id="projects" class="fade-in">
+  <p class="section-label">Projects</p>
+  <h2 class="section-title">代表项目</h2>
+  <p class="section-desc">以下是部分代表性项目成果，更多案例欢迎联系交流。</p>
+
+  <div class="projects-grid">
+
+    <div class="project-card fade-in">
+      <div class="project-icon">📱</div>
+      <div class="project-name">项目名称一</div>
+      <div class="project-desc">描述项目背景、你的角色定位以及最终取得的成果数据（如：私域用户增长 XX%、成交额提升 XX 万等）。</div>
+      <div class="project-tags">
+        <span class="tag">私域运营</span>
+        <span class="tag">知识IP</span>
+      </div>
+    </div>
+
+    <div class="project-card fade-in">
+      <div class="project-icon">🎯</div>
+      <div class="project-name">项目名称二</div>
+      <div class="project-desc">描述项目背景、你的角色定位以及最终取得的成果数据。</div>
+      <div class="project-tags">
+        <span class="tag">内容策略</span>
+        <span class="tag">用户增长</span>
+      </div>
+    </div>
+
+    <div class="project-card fade-in">
+      <div class="project-icon">💡</div>
+      <div class="project-name">项目名称三</div>
+      <div class="project-desc">描述项目背景、你的角色定位以及最终取得的成果数据。</div>
+      <div class="project-tags">
+        <span class="tag">变现体系</span>
+        <span class="tag">项目管理</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 个人经历 ───────────────────────────────────────────── -->
+<section id="experience" class="fade-in">
+  <p class="section-label">Experience</p>
+  <h2 class="section-title">个人经历</h2>
+  <p class="section-desc">从互联网教育到知识IP私域，持续深耕用户增长与策略方向。</p>
+
+  <div class="timeline">
+
+    <div class="timeline-item fade-in">
+      <div class="timeline-dot"></div>
+      <div class="timeline-period">近期 — 至今</div>
+      <div class="timeline-role">知识IP私域策略专家</div>
+      <div class="timeline-org">独立顾问 / 自有业务</div>
+      <div class="timeline-body">
+        专注于知识创业者的私域增长咨询与策略落地，涵盖 IP 定位、社群运营体系搭建、
+        内容变现路径设计等核心环节，帮助客户实现可持续的私域商业增长。
+      </div>
+    </div>
+
+    <div class="timeline-item fade-in">
+      <div class="timeline-dot"></div>
+      <div class="timeline-period">此前</div>
+      <div class="timeline-role">一级项目负责人</div>
+      <div class="timeline-org">高途（原跟谁学）</div>
+      <div class="timeline-body">
+        负责核心业务线的全周期项目管理，统筹产品、运营、师资等多方协作，
+        推动项目从规划到交付的高质量落地，积累了丰富的互联网教育行业实战经验。
+      </div>
+    </div>
+
+    <!-- 如有更早经历，在此继续添加 -->
+
+  </div>
+
+  <h3 style="font-size:0.88rem; font-weight:700; margin:3rem 0 1rem; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase;">核心能力</h3>
+  <div class="skills-wrap">
+    <span class="skill-badge">知识IP定位</span>
+    <span class="skill-badge">私域流量运营</span>
+    <span class="skill-badge">内容策略规划</span>
+    <span class="skill-badge">社群体系搭建</span>
+    <span class="skill-badge">变现路径设计</span>
+    <span class="skill-badge">项目全周期管理</span>
+    <span class="skill-badge">用户增长</span>
+    <span class="skill-badge">互联网教育</span>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 联系 ─────────────────────────────────────────────── -->
+<section id="contact" class="fade-in">
+  <p class="section-label">Contact</p>
+  <h2 class="section-title">合作与联系</h2>
+  <p class="section-desc">如果你正在做知识IP或私域方向，欢迎交流合作。</p>
+
+  <div class="contact-card">
+    <div class="contact-row">
+      <span class="contact-icon">💬</span>
+      <span>微信：请填写微信号</span>
+    </div>
+    <div class="contact-row">
+      <span class="contact-icon">📧</span>
+      <span>请填写邮箱地址</span>
+    </div>
+    <div class="contact-row">
+      <span class="contact-icon">📍</span>
+      <span>请填写所在城市</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 石更新 · 知识IP私域策略专家</p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
